@@ -5,6 +5,7 @@ public class PlayerMovementManager : MonoBehaviour
 {
     [SerializeField] private CharacterController characterController;
     [SerializeField] private PlayerStatsSO playerStats;
+    [SerializeField] private PlayerCameraManager playerCameraManager;
     private InputAction moveAction;
     private InputAction jumpAction;
     private InputAction sprintAction;
@@ -52,8 +53,17 @@ public class PlayerMovementManager : MonoBehaviour
 
     private void MovePlayer()
     {
-        Vector2 input = moveAction.ReadValue<Vector2>();
-        Vector3 inputDirection = (transform.right * input.x + transform.forward * input.y).normalized;
+        Vector2 input = moveAction.ReadValue<Vector2>();	
+		
+		Vector3 camForward = playerCameraManager.CameraForward;
+		Vector3 camRight   = Vector3.Cross(Vector3.up, camForward);
+		
+		//Old movement
+        //Vector3 inputDirection = (transform.right * input.x + transform.forward * input.y).normalized;
+		
+		//New movement based on camera angle
+		Vector3 inputDirection = (camRight * input.x + camForward * input.y).normalized;
+		
         velocity.x = inputDirection.x * currentSpeed;
         velocity.z = inputDirection.z * currentSpeed;
         ApplyGravity();
