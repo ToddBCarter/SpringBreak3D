@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 
 public class PlayerCameraManager : MonoBehaviour
 {	
+/*
     private const float YMin = -85.0f;
     private const float YMax = 85.0f;
 
@@ -16,8 +17,8 @@ public class PlayerCameraManager : MonoBehaviour
     private float currentX = 0.0f;
     private float currentY = 0.0f;
     public float sensivity = 1.0f;
-	
-	
+
+*/
 
 	//Returns the forward direction of the camera for the player's movement
     public Vector3 CameraForward
@@ -30,6 +31,7 @@ public class PlayerCameraManager : MonoBehaviour
         }
     }
 
+/*
     // Update is called once per frame
     void LateUpdate()
     {
@@ -45,4 +47,6 @@ public class PlayerCameraManager : MonoBehaviour
         transform.LookAt(lookAt.position);
 
     }
+	
+	*/
 }
