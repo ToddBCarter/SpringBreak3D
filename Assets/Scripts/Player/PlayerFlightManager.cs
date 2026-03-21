@@ -31,9 +31,7 @@ public class PlayerFlightManager : MonoBehaviour
     {
         _moveAction = InputSystem.actions.FindAction("Move");
         _flapAction = InputSystem.actions.FindAction("Jump");
-        _flyToggleAction = InputSystem.actions.FindAction("Sprint");
-		
-        //slideAction = InputSystem.actions.FindAction("Slide");
+        _flyToggleAction = InputSystem.actions.FindAction("Flight");
     }
 
     private void OnEnable()
@@ -90,10 +88,9 @@ public class PlayerFlightManager : MonoBehaviour
 
         Vector2 input = _moveAction.ReadValue<Vector2>();
 
+		//Stay facing forward
         Vector3 camForward = playerCameraManager.CameraForward;
         Vector3 camRight   = Vector3.Cross(Vector3.up, camForward);
-
-        //
         Vector3 cameraForwardFull = Camera.main.transform.forward;
 
         //Accelerate forward speed up to flightSpeed
@@ -103,7 +100,7 @@ public class PlayerFlightManager : MonoBehaviour
             flightAcceleration * Time.deltaTime
         );
 
-        //Forward momentum — always in camera facing direction
+        //Move forward towards camera
         Vector3 flightVelocity = cameraForwardFull * _currentFlightSpeed;
 
         //A/D banking — strafe gently left/right
@@ -119,7 +116,9 @@ public class PlayerFlightManager : MonoBehaviour
 
         //Auto-exit if grounded while flying
         if (characterController.isGrounded)
+		{
             ExitFlight();
+		}
     }
 
 }

@@ -31,29 +31,26 @@ public class PlayerMovementManager : MonoBehaviour
 
         currentSpeed = playerStats.WalkSpeed;
 		
-		playerFlightManager.enabled = false; //Start on the ground
+		playerFlightManager.enabled = true; //just leave it enabled
+		
+		Debug.Log("Player spawn position: " + transform.position);
+		Debug.Log("Capsule height: " + characterController.height);
+		Debug.Log("Capsule center: " + characterController.center);
     }
 
     private void Update()
     {   
-		bool isGrounded = checkGround();
-
-		// Only change enabled state when grounded state actually changes
-		if (isGrounded != _wasGrounded)
-		{
-			playerFlightManager.enabled = !isGrounded;
-			_wasGrounded = isGrounded;
-		}
-
 		if (playerFlightManager.IsFlying)
 		{
 			playerFlightManager.UpdateFlight();
-			return;
+			return; //skip remaining movement
 		}
 		
-        if (IsJumpButtonPressed)
+        if (IsJumpButtonPressed && characterController.isGrounded)
         {
             velocity.y = playerStats.JumpForce; //probably wanna mess with this and maybe add maneuverability while jumping?
+			
+			
         }
         
         if (IsSprintButtonPressed)
@@ -71,10 +68,10 @@ public class PlayerMovementManager : MonoBehaviour
             Debug.Log("slide"); //haven't implemented sliding
         }
 
-        MovePlayer(isGrounded);
+        MovePlayer();
     }
 
-    private void MovePlayer(bool isGrounded)
+    private void MovePlayer()
     {
         Vector2 input = moveAction.ReadValue<Vector2>();	
 		
@@ -89,14 +86,14 @@ public class PlayerMovementManager : MonoBehaviour
 		
         velocity.x = inputDirection.x * currentSpeed;
         velocity.z = inputDirection.z * currentSpeed;
-        ApplyGravity(isGrounded);
+        ApplyGravity();
 		
         characterController.Move(velocity * Time.deltaTime);
     }
 
-    private void ApplyGravity(bool isGrounded)
+    private void ApplyGravity()
     {
-        if (isGrounded && velocity.y < 0)
+        if (characterController.isGrounded && velocity.y < 0)
         {
             velocity.y = 0f;
         }
