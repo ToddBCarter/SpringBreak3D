@@ -7,12 +7,14 @@ public class PlayerFlightManager : MonoBehaviour
     [SerializeField] private PlayerCameraManager playerCameraManager;
     [SerializeField] private PlayerStatsSO playerStats;
 
+	//These can be merged into PlayerStats later
     public float flightSpeed = 12f;
-    public float glideFallSpeed = 2f;
-    public float flapStrength = 6f;
+    public float glideFallSpeed = 3f;
+    public float flapStrength = 4f;
     public float flapCooldown = 0.4f;
-    public float flightAcceleration = 3f;
+    public float flightAcceleration = 5f;
     public float bankStrength = 0.4f;
+	public float brakeStrength = 4f;
 
     public float exitGravity = 12f;
 
@@ -26,12 +28,14 @@ public class PlayerFlightManager : MonoBehaviour
     private InputAction _moveAction;
 	
     public bool IsFlying => _isFlying;
+	
+	public bool brakeCheck;
 
     private void Awake()
     {
         _moveAction = InputSystem.actions.FindAction("Move");
         _flapAction = InputSystem.actions.FindAction("Jump");
-        _flyToggleAction = InputSystem.actions.FindAction("Flight");
+        _flyToggleAction = InputSystem.actions.FindAction("Flight"); //F key
     }
 
     private void OnEnable()
@@ -82,6 +86,9 @@ public class PlayerFlightManager : MonoBehaviour
         _currentFlightSpeed = 0f;
     }
 
+	//Code for bird-like flight.
+	//This should be refined further to better emulate taking off.
+	//Current parameters have very floaty-feeling flight.
     public void UpdateFlight()
     {
         if (!_isFlying) return;
@@ -92,18 +99,34 @@ public class PlayerFlightManager : MonoBehaviour
         Vector3 camForward = playerCameraManager.CameraForward;
         Vector3 camRight   = Vector3.Cross(Vector3.up, camForward);
         Vector3 cameraForwardFull = Camera.main.transform.forward;
+		
+		brakeCheck = input.y < -0.1f; //Check the S key (negative Y)
+		
+		if(brakeCheck)
+		{
+			//Decelerate with brake strength
+			_currentFlightSpeed = Mathf.MoveTowards(
+				_currentFlightSpeed,
+				0f,
+				brakeStrength * Time.deltaTime
+			);
+		}
+		else
+		{
+			//Accelerate forward up to flightSpeed
+			_currentFlightSpeed = Mathf.MoveTowards(
+				_currentFlightSpeed,
+				flightSpeed,
+				flightAcceleration * Time.deltaTime
+			);
+		}
 
-        //Accelerate forward speed up to flightSpeed
-        _currentFlightSpeed = Mathf.MoveTowards(
-            _currentFlightSpeed,
-            flightSpeed,
-            flightAcceleration * Time.deltaTime
-        );
+
 
         //Move forward towards camera
         Vector3 flightVelocity = cameraForwardFull * _currentFlightSpeed;
 
-        //A/D banking — strafe gently left/right
+        //A/D banking
         flightVelocity += camRight * (input.x * bankStrength * _currentFlightSpeed);
 
         //Apply glide sink between flaps

@@ -2028,12 +2028,14 @@ MonoBehaviour:
   playerCameraManager: {fileID: 916441003}
   playerStats: {fileID: 11400000, guid: 168cb832e74509e40b005f27af51812c, type: 2}
   flightSpeed: 12
-  glideFallSpeed: 2
+  glideFallSpeed: 3
   flapStrength: 6
   flapCooldown: 0.4
-  flightAcceleration: 3
+  flightAcceleration: 4
   bankStrength: 0.4
+  brakeStrength: 4
   exitGravity: 12
+  brakeCheck: 0
 --- !u!1 &743501103
 GameObject:
   m_ObjectHideFlags: 0

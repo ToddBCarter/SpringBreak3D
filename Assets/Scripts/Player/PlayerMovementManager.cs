@@ -49,8 +49,6 @@ public class PlayerMovementManager : MonoBehaviour
         if (IsJumpButtonPressed && characterController.isGrounded)
         {
             velocity.y = playerStats.JumpForce; //probably wanna mess with this and maybe add maneuverability while jumping?
-			
-			
         }
         
         if (IsSprintButtonPressed)
@@ -102,25 +100,4 @@ public class PlayerMovementManager : MonoBehaviour
             velocity.y += gravity * playerStats.GravityMultiplier * Time.deltaTime; //gravity multiplier might need to modified to fall faster to feel better
         }
     }
-	
-	private bool checkGround()
-	{
-		Vector3 origin = transform.position + Vector3.down * (characterController.height / 2f - characterController.radius + 0.05f);
-
-		bool hit = Physics.SphereCast(
-			origin,
-			characterController.radius * 0.5f,
-			Vector3.down,
-			out RaycastHit hitInfo,
-			groundCheckDistance,
-			groundLayer,
-			QueryTriggerInteraction.Ignore
-		);
-		
-		if (hit){
-			Debug.Log("Ground hit: " + hitInfo.collider.gameObject.name + " on layer: " + LayerMask.LayerToName(hitInfo.collider.gameObject.layer));
-		}
-		
-		return hit;
-	}
 }
