@@ -121,8 +121,6 @@ public class PlayerFlightManager : MonoBehaviour
 			);
 		}
 
-
-
         //Move forward towards camera
         Vector3 flightVelocity = cameraForwardFull * _currentFlightSpeed;
 
