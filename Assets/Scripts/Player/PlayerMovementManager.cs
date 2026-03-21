@@ -6,6 +6,7 @@ public class PlayerMovementManager : MonoBehaviour
     [SerializeField] private CharacterController characterController;
     [SerializeField] private PlayerStatsSO playerStats;
     [SerializeField] private PlayerCameraManager playerCameraManager;
+	[SerializeField] private PlayerFlightManager playerFlightManager;
     private InputAction moveAction;
     private InputAction jumpAction;
     private InputAction sprintAction;
@@ -16,6 +17,10 @@ public class PlayerMovementManager : MonoBehaviour
     public bool IsJumpButtonPressed => jumpAction.IsPressed();
     public bool IsSlideButtonPressed => slideAction.IsPressed();
     public bool IsSprintButtonPressed => sprintAction.IsPressed();
+	
+	private bool _wasGrounded = true;
+	private float groundCheckDistance = 0.2f;
+	[SerializeField] private LayerMask groundLayer;
 
     private void Awake()
     {
@@ -25,17 +30,30 @@ public class PlayerMovementManager : MonoBehaviour
         slideAction = InputSystem.actions.FindAction("Slide");
 
         currentSpeed = playerStats.WalkSpeed;
+		
+		playerFlightManager.enabled = true; //just leave it enabled
+		
+		Debug.Log("Player spawn position: " + transform.position);
+		Debug.Log("Capsule height: " + characterController.height);
+		Debug.Log("Capsule center: " + characterController.center);
     }
 
     private void Update()
     {   
-        if (IsJumpButtonPressed)
+		if (playerFlightManager.IsFlying)
+		{
+			playerFlightManager.UpdateFlight();
+			return; //skip remaining movement
+		}
+		
+        if (IsJumpButtonPressed && characterController.isGrounded)
         {
             velocity.y = playerStats.JumpForce; //probably wanna mess with this and maybe add maneuverability while jumping?
         }
         
         if (IsSprintButtonPressed)
         {
+			
             currentSpeed = playerStats.SprintSpeed; //need to implement momentum and decide if this will have limitations
         }
         else
@@ -67,6 +85,7 @@ public class PlayerMovementManager : MonoBehaviour
         velocity.x = inputDirection.x * currentSpeed;
         velocity.z = inputDirection.z * currentSpeed;
         ApplyGravity();
+		
         characterController.Move(velocity * Time.deltaTime);
     }
 
