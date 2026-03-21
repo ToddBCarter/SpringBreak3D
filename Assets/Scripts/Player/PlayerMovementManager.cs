@@ -6,6 +6,7 @@ public class PlayerMovementManager : MonoBehaviour
     [SerializeField] private CharacterController characterController;
     [SerializeField] private PlayerStatsSO playerStats;
     [SerializeField] private PlayerCameraManager playerCameraManager;
+	[SerializeField] private PlayerFlightManager playerFlightManager;
     private InputAction moveAction;
     private InputAction jumpAction;
     private InputAction sprintAction;
@@ -16,6 +17,10 @@ public class PlayerMovementManager : MonoBehaviour
     public bool IsJumpButtonPressed => jumpAction.IsPressed();
     public bool IsSlideButtonPressed => slideAction.IsPressed();
     public bool IsSprintButtonPressed => sprintAction.IsPressed();
+	
+	private bool _wasGrounded = true;
+	private float groundCheckDistance = 0.2f;
+	[SerializeField] private LayerMask groundLayer;
 
     private void Awake()
     {
@@ -25,10 +30,27 @@ public class PlayerMovementManager : MonoBehaviour
         slideAction = InputSystem.actions.FindAction("Slide");
 
         currentSpeed = playerStats.WalkSpeed;
+		
+		playerFlightManager.enabled = false; //Start on the ground
     }
 
     private void Update()
     {   
+		bool isGrounded = checkGround();
+
+		// Only change enabled state when grounded state actually changes
+		if (isGrounded != _wasGrounded)
+		{
+			playerFlightManager.enabled = !isGrounded;
+			_wasGrounded = isGrounded;
+		}
+
+		if (playerFlightManager.IsFlying)
+		{
+			playerFlightManager.UpdateFlight();
+			return;
+		}
+		
         if (IsJumpButtonPressed)
         {
             velocity.y = playerStats.JumpForce; //probably wanna mess with this and maybe add maneuverability while jumping?
@@ -36,6 +58,7 @@ public class PlayerMovementManager : MonoBehaviour
         
         if (IsSprintButtonPressed)
         {
+			
             currentSpeed = playerStats.SprintSpeed; //need to implement momentum and decide if this will have limitations
         }
         else
@@ -48,10 +71,10 @@ public class PlayerMovementManager : MonoBehaviour
             Debug.Log("slide"); //haven't implemented sliding
         }
 
-        MovePlayer();
+        MovePlayer(isGrounded);
     }
 
-    private void MovePlayer()
+    private void MovePlayer(bool isGrounded)
     {
         Vector2 input = moveAction.ReadValue<Vector2>();	
 		
@@ -66,13 +89,14 @@ public class PlayerMovementManager : MonoBehaviour
 		
         velocity.x = inputDirection.x * currentSpeed;
         velocity.z = inputDirection.z * currentSpeed;
-        ApplyGravity();
+        ApplyGravity(isGrounded);
+		
         characterController.Move(velocity * Time.deltaTime);
     }
 
-    private void ApplyGravity()
+    private void ApplyGravity(bool isGrounded)
     {
-        if (characterController.isGrounded && velocity.y < 0)
+        if (isGrounded && velocity.y < 0)
         {
             velocity.y = 0f;
         }
@@ -81,4 +105,25 @@ public class PlayerMovementManager : MonoBehaviour
             velocity.y += gravity * playerStats.GravityMultiplier * Time.deltaTime; //gravity multiplier might need to modified to fall faster to feel better
         }
     }
+	
+	private bool checkGround()
+	{
+		Vector3 origin = transform.position + Vector3.down * (characterController.height / 2f - characterController.radius + 0.05f);
+
+		bool hit = Physics.SphereCast(
+			origin,
+			characterController.radius * 0.5f,
+			Vector3.down,
+			out RaycastHit hitInfo,
+			groundCheckDistance,
+			groundLayer,
+			QueryTriggerInteraction.Ignore
+		);
+		
+		if (hit){
+			Debug.Log("Ground hit: " + hitInfo.collider.gameObject.name + " on layer: " + LayerMask.LayerToName(hitInfo.collider.gameObject.layer));
+		}
+		
+		return hit;
+	}
 }
